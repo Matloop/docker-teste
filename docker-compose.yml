@@ -1,0 +1,48 @@
+# docker-compose.yml
+version: '3.8' # Use uma versão recente do compose
+
+services:
+  # Serviço da aplicação web Flask
+  web:
+    build: . # Constrói a imagem a partir do Dockerfile no diretório atual
+    container_name: flask_app_container # Nome do container (opcional)
+    ports:
+      - "5000:5000" # Mapeia a porta 5000 do host para a 5000 do container
+    volumes:
+      - .:/app # Monta o diretório atual no /app do container (útil para desenvolvimento, reflete mudanças no código sem rebuild)
+               # Em produção, você pode querer remover isso após o build inicial
+    environment:
+      # Configurações de conexão com o banco de dados
+      # O host 'db' é o nome do serviço do banco de dados definido abaixo
+      - DB_HOST=db
+      - DB_NAME=mydatabase
+      - DB_USER=user
+      - DB_PASSWORD=password # NÃO use senhas fixas em produção! Use segredos ou variáveis de ambiente do host.
+      - DB_PORT=5432
+      - FLASK_SECRET_KEY=minha-chave-secreta-super-segura-mudar-isso # Mude isso para algo seguro
+      # Configurações do Flask (se não definidas no Dockerfile)
+      # - FLASK_APP=app.py
+      # - FLASK_ENV=development # ou production
+      # - FLASK_RUN_HOST=0.0.0.0
+    depends_on:
+      - db # Garante que o serviço 'db' inicie antes do 'web'
+
+  # Serviço do banco de dados PostgreSQL
+  db:
+    image: postgres:14-alpine # Usa uma imagem oficial do PostgreSQL (versão 14 com Alpine Linux, menor)
+    container_name: postgres_db_container # Nome do container (opcional)
+    environment:
+      # Variáveis de ambiente para configurar o PostgreSQL
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password # Deve corresponder às variáveis usadas no serviço 'web'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Volume nomeado para persistir os dados do banco
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql # Monta o script SQL para inicialização
+    ports:
+      # Expor a porta do PostgreSQL no host (opcional, útil para conectar com ferramentas de DB externas)
+      - "5433:5432" # Mapeia a porta 5433 do host para a 5432 do container do DB
+
+# Define o volume nomeado para persistência dos dados do PostgreSQL
+volumes:
+  postgres_data:

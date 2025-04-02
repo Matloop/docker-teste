@@ -1,0 +1,66 @@
+<!-- templates/index.html -->
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>App com Banco de Dados</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px;}
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .flash { padding: 10px; margin-bottom: 15px; border-radius: 4px; }
+        .flash.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .error-message { color: red; font-weight: bold; }
+        form { margin-bottom: 20px; }
+        label, input, button { margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Itens no Banco de Dados</h1>
+
+    <!-- Exibe mensagens flash (sucesso/erro) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Exibe mensagem de erro geral (ex: falha de conexão) -->
+    {% if error_message %}
+        <p class="error-message">{{ error_message }}</p>
+    {% endif %}
+
+    <form action="{{ url_for('add_item') }}" method="post">
+        <label for="item_name">Novo Item:</label>
+        <input type="text" id="item_name" name="item_name" required>
+        <button type="submit">Adicionar</button>
+    </form>
+
+    {% if items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item[0] }}</td>
+                    <td>{{ item[1] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% elif not error_message %}
+        <p>Nenhum item encontrado no banco de dados.</p>
+    {% endif %}
+
+</body>
+</html>
